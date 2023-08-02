@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fadila Pijar</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.6.0/cdn/themes/light.css" />
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.6.0/cdn/shoelace-autoloader.js"></script>
+</head>
+
+<body>
+    <div>
+        <sl-card>
+            <form id="form_add">
+                <sl-input id="nama" label="nama produk" name="nama_produk"></sl-input>
+                <sl-textarea id="keterangan" label="keterangan"></sl-textarea>
+                <sl-input id="harga" label="harga" name="harga" value=45></sl-input>
+                <sl-input id="stok" label="stok" name="stok" value=45></sl-input>
+                <sl-button onclick={submitHandle()} id="submit">Submit</sl-button>
+            </form>
+        </sl-card>
+    </div>
+    <div id="lll">
+
+    </div>
+    <script>
+
+        const submitHandle = () => {
+            const data = {
+                nama_produk: document.querySelector('#nama').value,
+                keterangan: document.querySelector('#keterangan').value,
+                harga: document.querySelector('#harga').value,
+                jumlah: document.querySelector('#stok').value,
+            };
+            fetch('http://localhost:8000/api/produk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            document.querySelector('#lll').innerHTML = '<sl-button>asdasd</sl-button>';
+        }
+    </script>
+</body>
+
+</html>
