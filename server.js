@@ -87,10 +87,10 @@ app.patch("/api/produk/:id", (req, res, next) => {
   };
   db.run(
     `UPDATE produk set
-           nama_produk = COALESCE(?,nama_produk),
-           keterangan = COALESCE(?,keterangan),
-           harga = COALESCE(?,harga),
-           jumlah = COALESCE(?,jumlah)
+           nama_produk = ?,
+           keterangan = ?,
+           harga = ?,
+           jumlah = ?
            WHERE id = ?`,
     [data.nama_produk, data.keterangan, data.harga, data.jumlah, req.params.id],
     function (err, result) {

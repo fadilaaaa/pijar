@@ -14,28 +14,104 @@
 <body>
     <div>
         <sl-card>
-            <form id="form_add">
+            <form id="form_add" onsubmit="event.preventDefault();">
                 <sl-input id="nama" label="nama produk" name="nama_produk"></sl-input>
                 <sl-textarea id="keterangan" label="keterangan"></sl-textarea>
-                <sl-input id="harga" label="harga" name="harga" value=45></sl-input>
-                <sl-input id="stok" label="stok" name="stok" value=45></sl-input>
-                <sl-button onclick={submitHandle()} id="submit">Submit</sl-button>
+                <sl-input id="harga" label="harga" name="harga"></sl-input>
+                <sl-input id="stok" label="stok" name="stok"></sl-input>
+                <sl-visually-hidden>
+                    <sl-input id="ids" name="id"></sl-input>
+                </sl-visually-hidden>
+                <div id="submit">
+                    <sl-button type="primary" onclick={submitHandle()}>submit</sl-button>
+                </div>
             </form>
         </sl-card>
     </div>
-    <div id="lll">
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>no</th>
+                    <th>nama produk</th>
+                    <th>keterangan</th>
+                    <th>harga</th>
+                    <th>jumlah</th>
+                    <th>aksi</th>
+                </tr>
+            </thead>
+            <tbody id="table_body">
 
+            </tbody>
+        </table>
     </div>
+    <sl-alert id="toast_submit" variant="neutral" duration="3000" closable>
+        <strong>data berhasil ditambah</strong><br />
+    </sl-alert>
+    <sl-alert id="toast_delete" variant="neutral" duration="3000" closable>
+        <strong>data telah dihapus</strong><br />
+    </sl-alert>
     <script>
+        const base_url = 'http://localhost:8000/api/produk';
+
+        const Tbody = document.querySelector('#table_body');
+        const toast_delete = document.querySelector('#toast_delete');
+        const toast_submit = document.querySelector('#toast_submit');
+
+        const field = {
+            nama_produk: document.querySelector('#nama'),
+            keterangan: document.querySelector('#keterangan'),
+            harga: document.querySelector('#harga'),
+            jumlah: document.querySelector('#stok'),
+        }
+
+        const initialRender = () => {
+            fetch(base_url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => response.json())
+                .then((data) => {
+                    let temp = '';
+                    data.data.forEach(element => {
+                        temp += `
+                    <tr>
+                        <td>${element.id}</td>
+                        <td>${element.nama_produk}</td>
+                        <td>${element.keterangan}</td>
+                        <td>${element.harga}</td>
+                        <td>${element.jumlah}</td>
+                        <td>
+                            <sl-button onclick={deleteHandle(${element.id})} type="danger">delete</sl-button>
+                            <sl-button onclick={updateField(${element.id})} type="primary">update</sl-button>
+                        </td>
+                    </tr>
+                    `
+                    });
+                    Tbody.innerHTML = temp;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+        const emptyField = () => {
+            field.nama_produk.value = '';
+            field.keterangan.value = '';
+            field.harga.value = '';
+            field.jumlah.value = '';
+        }
+
+        initialRender();
 
         const submitHandle = () => {
             const data = {
-                nama_produk: document.querySelector('#nama').value,
-                keterangan: document.querySelector('#keterangan').value,
-                harga: document.querySelector('#harga').value,
-                jumlah: document.querySelector('#stok').value,
+                nama_produk: field.nama_produk.value,
+                keterangan: field.keterangan.value,
+                harga: field.harga.value,
+                jumlah: field.jumlah.value,
             };
-            fetch('http://localhost:8000/api/produk', {
+            fetch(base_url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,11 +120,80 @@
             }).then((response) => response.json())
                 .then((data) => {
                     console.log(data);
+                    initialRender();
+                    toast_submit.toast();
+                    emptyField();
                 })
                 .catch((error) => {
                     console.error('Error:', error);
                 });
-            document.querySelector('#lll').innerHTML = '<sl-button>asdasd</sl-button>';
+            // document.querySelector('#lll').innerHTML = '<sl-button>asdasd</sl-button>';
+        }
+
+        const deleteHandle = (id) => {
+            fetch(base_url + '/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    initialRender();
+                    toast_delete.toast();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+        let ids;
+        const updateField = (id) => {
+            fetch(base_url + '/' + id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    document.querySelector('#nama').value = data.data.nama_produk;
+                    field.keterangan.value = data.data.keterangan;
+                    field.harga.value = data.data.harga;
+                    field.jumlah.value = data.data.jumlah;
+                    ids = data.data.id;
+
+                    document.querySelector('#submit').innerHTML = '<sl-button type="primary" onclick={updateHandle()}>update</sl-button>';
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+        const updateHandle = () => {
+
+            const data = {
+                nama_produk: document.querySelector('#nama').value,
+                keterangan: document.querySelector('#keterangan').value,
+                harga: document.querySelector('#harga').value,
+                jumlah: document.querySelector('#stok').value,
+            };
+            console.log(base_url + '/' + ids);
+            fetch(base_url + '/' + ids, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    toast_submit.toast();
+                    emptyField();
+                    document.querySelector('#submit').innerHTML = '<sl-button type="primary" onclick={submitHandle()}>submit</sl-button>';
+                    initialRender();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
         }
     </script>
 </body>
